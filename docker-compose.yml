@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  helicone:
+    image: helicone/helicone:0.4.2
+    ports:
+      - "8080:8080"
+    environment:
+      - HELICONE_API_KEY=${HELICONE_API_KEY:-helicone_123}
+    restart: unless-stopped
+
+  litefs:
+    image: flyio/litefs:latest
+    volumes:
+      - ./litefs.yml:/etc/litefs.yml
+      - litefs-data:/data
+    restart: unless-stopped
+
+  sidecar:
+    build: ./agent-sidecar
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - HELICONE_URL=http://helicone:8080
+    depends_on:
+      - redis
+      - helicone
+    restart: unless-stopped
+
+  webui:
+    build: ./electron
+    ports:
+      - "3000:3000"
+    environment:
+      - SIDECAR_URL=http://sidecar:8000
+    depends_on:
+      - sidecar
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  litefs-data:

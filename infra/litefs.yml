@@ -1,0 +1,29 @@
+# LiteFS Configuration for k3ss-IDE Memory Infrastructure
+# Single-node durability configuration
+
+# Mount configuration
+mount:
+  path: /data
+
+# Journaling configuration
+journaling:
+  mode: full       # ensure WAL writes before ACK
+
+# Checkpoint configuration
+checkpoint:
+  interval: 30s    # flush WAL to SQLite every 30 seconds
+
+# Metrics configuration
+metrics:
+  enabled: false
+
+# Logging configuration
+logging:
+  level: info
+
+# Note: For future replica configuration, add the following:
+# remotes:
+#   - name: primary
+#     url: http://<primary-host>:20202
+#     region: <region-name>
+#     api-key: <api-key>
