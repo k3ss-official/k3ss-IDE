@@ -1,0 +1,6 @@
+mount:
+  path: /data
+metrics:
+  enabled: false
+logging:
+  level: info
