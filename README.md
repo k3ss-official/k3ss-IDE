@@ -24,7 +24,9 @@ The k3ss-IDE platform consists of several integrated components:
 
 ## Installation
 
-### Local Conda Installation
+### Local Installation (Recommended)
+
+This method uses a comprehensive script to check dependencies, set up the Conda environment, and install necessary packages.
 
 1. Clone the repository:
    ```bash
@@ -32,22 +34,14 @@ The k3ss-IDE platform consists of several integrated components:
    cd k3ss-IDE
    ```
 
-2. Create and activate a conda environment using the provided script:
+2. Run the installation script:
    ```bash
-   ./installers/install_local.sh
-   conda activate k3ss_ide
+   chmod +x install.sh
+   ./install.sh
    ```
+   The script will guide you through dependency checks and setup.
 
-3. Configure your environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys and configuration
-   ```
-
-4. Start the application:
-   ```bash
-   ./installers/start_local.sh
-   ```
+3. Follow the on-screen instructions provided by the script upon successful completion to activate the environment, configure `.env`, and start the application.
 
 ### Local Docker Compose Installation
 
