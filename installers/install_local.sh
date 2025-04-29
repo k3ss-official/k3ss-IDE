@@ -77,6 +77,4 @@ EOF
 
 echo -e "${GREEN}Installation complete!${NC}"
 echo -e "${YELLOW}To start the application:${NC}"
-echo -e "1. Activate the conda environment: ${GREEN}conda activate k3ss_ide${NC}"
-echo -e "2. Start the application: ${GREEN}cd $PROJECT_ROOT && docker-compose up${NC}"
-echo -e "   Or for development: ${GREEN}cd $PROJECT_ROOT/electron && npm run dev${NC}"
+echo -e "1. Activate the conda environment: ${GREEN}conda activate k3ss_ide${NC}"echo -e "2. Start the application: ${GREEN}cd $PROJECT_ROOT && ./installers/start_local.sh${NC}"
