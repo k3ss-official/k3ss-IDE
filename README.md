@@ -32,25 +32,19 @@ The k3ss-IDE platform consists of several integrated components:
    cd k3ss-IDE
    ```
 
-2. Create and activate a conda environment:
+2. Create and activate a conda environment using the provided script:
    ```bash
-   conda create -n k3ss python=3.10
-   conda activate k3ss
+   ./installers/install_local.sh
+   conda activate k3ss_ide
    ```
 
-3. Install dependencies:
-   ```bash
-   pip install -r backend/requirements.txt
-   cd electron && npm install && cd ..
-   ```
-
-4. Configure your environment:
+3. Configure your environment:
    ```bash
    cp .env.example .env
    # Edit .env with your API keys and configuration
    ```
 
-5. Start the application:
+4. Start the application:
    ```bash
    ./installers/start_local.sh
    ```

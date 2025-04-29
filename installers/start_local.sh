@@ -10,7 +10,7 @@ echo "Starting k3ss-IDE components..."
 
 # Activate conda environment
 eval "$(conda shell.bash hook)"
-conda activate k3ss
+conda activate k3ss_ide
 
 # Start Redis if not running
 if ! redis-cli ping &> /dev/null; then
