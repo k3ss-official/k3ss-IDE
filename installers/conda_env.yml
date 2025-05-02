@@ -2,7 +2,7 @@ name: k3ss_ide
 channels:
   - conda-forge
 dependencies:
-  - python>=3.11
+  - python>=3.11,<3.13
   - nodejs=18
   - redis-server>=7.0
   - sqlite
