@@ -104,12 +104,10 @@ if [[ "$USE_EXISTING_ENV" =~ ^[Yy]$ ]]; then
         read -p "Enter the name of the existing environment to use: " CONDA_ENV_NAME
         if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
             print_success "Using existing environment: $CONDA_ENV_NAME"
-            # Optionally, offer to update the existing environment?
-            # read -p "Update environment '$CONDA_ENV_NAME' with packages from $CONDA_ENV_FILE? (y/N): " UPDATE_ENV
-            # if [[ "$UPDATE_ENV" =~ ^[Yy]$ ]]; then
-            #     conda env update -n "$CONDA_ENV_NAME" -f "$CONDA_ENV_FILE" --prune || print_fail "Failed to update Conda environment."
-            #     print_success "Environment '$CONDA_ENV_NAME' updated."
-            # fi
+            # Automatically update the existing environment
+            print_info "Updating environment '$CONDA_ENV_NAME' with packages from $CONDA_ENV_FILE..."
+            conda env update -n "$CONDA_ENV_NAME" -f "$CONDA_ENV_FILE" --prune || print_fail "Failed to update Conda environment '$CONDA_ENV_NAME'."
+            print_success "Environment '$CONDA_ENV_NAME' updated successfully."
             break
         else
             print_info "${RED}Environment 	'$CONDA_ENV_NAME	' not found. Please try again.${NC}"
