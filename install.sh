@@ -6,17 +6,18 @@
 set -e
 
 # --- Configuration ---
-CONDA_ENV_NAME="k3ss_ide"
+DEFAULT_CONDA_ENV_NAME="k3ss_ide"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INSTALLERS_DIR="$SCRIPT_DIR/installers"
 ELECTRON_DIR="$SCRIPT_DIR/electron"
 CONDA_ENV_FILE="$INSTALLERS_DIR/conda_env.yml"
 
 # --- Colors and Formatting ---
-GREEN=\'\033[0;32m\'
-YELLOW=\'\033[1;33m\'
-RED=\'\033[0;31m\'
-NC=\'\033[0m\'
+# Use printf for better compatibility with escape sequences
+GREEN=$(printf 	'\033[0;32m	')
+YELLOW=$(printf 	'\033[1;33m	')
+RED=$(printf 	'\033[0;31m	')
+NC=$(printf 	'\033[0m	') # No Color
 CHECKMARK="${GREEN}✓${NC}"
 CROSS="${RED}✗${NC}"
 
@@ -87,19 +88,56 @@ else
     print_success "All system dependencies found."
 fi
 
-# 2. Setup Conda Environment
-print_step "Setting up Conda Environment ($CONDA_ENV_NAME)"
+# 2. Setup Conda Environment (Interactive)
+print_step "Configuring Conda Environment"
 
-if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
-    print_info "Conda environment 	'$CONDA_ENV_NAME	' already exists. Skipping creation."
-    print_info "If you want to recreate it, please remove it first: conda env remove -n $CONDA_ENV_NAME"
+USE_EXISTING_ENV=""
+while [[ ! "$USE_EXISTING_ENV" =~ ^[YyNn]$ ]]; do
+    read -p "Do you want to use an existing Conda environment? (y/N): " USE_EXISTING_ENV
+    USE_EXISTING_ENV=${USE_EXISTING_ENV:-N} # Default to No
+done
+
+if [[ "$USE_EXISTING_ENV" =~ ^[Yy]$ ]]; then
+    print_info "Available Conda environments:"
+    conda env list | grep -v "^#" | sed 	's/^/  /	'
+    while true; do
+        read -p "Enter the name of the existing environment to use: " CONDA_ENV_NAME
+        if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
+            print_success "Using existing environment: $CONDA_ENV_NAME"
+            # Optionally, offer to update the existing environment?
+            # read -p "Update environment '$CONDA_ENV_NAME' with packages from $CONDA_ENV_FILE? (y/N): " UPDATE_ENV
+            # if [[ "$UPDATE_ENV" =~ ^[Yy]$ ]]; then
+            #     conda env update -n "$CONDA_ENV_NAME" -f "$CONDA_ENV_FILE" --prune || print_fail "Failed to update Conda environment."
+            #     print_success "Environment '$CONDA_ENV_NAME' updated."
+            # fi
+            break
+        else
+            print_info "${RED}Environment 	'$CONDA_ENV_NAME	' not found. Please try again.${NC}"
+        fi
+    done
 else
-    if [ -f "$CONDA_ENV_FILE" ]; then
-        echo "  Creating environment from $CONDA_ENV_FILE..."
-        conda env create -f "$CONDA_ENV_FILE" || print_fail "Failed to create Conda environment."
-        print_success "Conda environment 	'$CONDA_ENV_NAME	' created successfully."
+    read -p "Enter a name for the new Conda environment [${DEFAULT_CONDA_ENV_NAME}]: " CONDA_ENV_NAME
+    CONDA_ENV_NAME=${CONDA_ENV_NAME:-$DEFAULT_CONDA_ENV_NAME}
+
+    # Basic validation for environment name (no spaces)
+    if [[ "$CONDA_ENV_NAME" =~ \s ]]; then
+        print_fail "Environment name cannot contain spaces: 	'$CONDA_ENV_NAME	'"
+    fi
+
+    if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
+        print_fail "Environment 	'$CONDA_ENV_NAME	' already exists. Please remove it first (conda env remove -n $CONDA_ENV_NAME) or choose a different name."
     else
-        print_fail "Conda environment file not found: $CONDA_ENV_FILE"
+        if [ -f "$CONDA_ENV_FILE" ]; then
+            print_info "Creating new environment 	'$CONDA_ENV_NAME	' from $CONDA_ENV_FILE..."
+            # Modify the environment file to set the name
+            sed -i.bak "s/^name: .*/name: $CONDA_ENV_NAME/" "$CONDA_ENV_FILE"
+            conda env create -f "$CONDA_ENV_FILE" || print_fail "Failed to create Conda environment."
+            # Restore the original environment file name (optional, but good practice)
+            mv "${CONDA_ENV_FILE}.bak" "$CONDA_ENV_FILE"
+            print_success "Conda environment 	'$CONDA_ENV_NAME	' created successfully."
+        else
+            print_fail "Conda environment file not found: $CONDA_ENV_FILE"
+        fi
     fi
 fi
 
@@ -108,7 +146,7 @@ print_step "Installing Node.js Dependencies for Electron UI"
 
 if [ -d "$ELECTRON_DIR" ]; then
     cd "$ELECTRON_DIR" || print_fail "Could not change directory to $ELECTRON_DIR"
-    echo "  Running npm install in $ELECTRON_DIR... (This may take a while)"
+    print_info "Running npm install in $ELECTRON_DIR... (This may take a while)"
     npm install || print_fail "npm install failed in $ELECTRON_DIR"
     print_success "Node.js dependencies installed successfully."
     cd "$SCRIPT_DIR" || print_fail "Could not change directory back to $SCRIPT_DIR"
@@ -131,7 +169,6 @@ else
 fi
 
 # Check if a key Python package can be imported
-# Note: This requires conda run, which might not be available if conda setup failed earlier, but set -e handles that.
 echo -n "  Checking Conda environment packages (fastapi)... "
 if conda run -n "$CONDA_ENV_NAME" python -c "import fastapi" &> /dev/null; then
     echo -e "${CHECKMARK}"
@@ -150,7 +187,7 @@ fi
 # 5. Final Report & Instructions
 print_step "Installation Complete!"
 
-echo -e "${GREEN}k3ss-IDE has been successfully installed.${NC}"
+echo -e "${GREEN}k3ss-IDE has been successfully installed using Conda environment 	'$CONDA_ENV_NAME	'.${NC}"
 echo -e "${YELLOW}Next Steps:${NC}"
 echo -e "1. Activate the Conda environment: ${GREEN}conda activate $CONDA_ENV_NAME${NC}"
 echo -e "2. Configure your API keys and settings:"
