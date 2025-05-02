@@ -22,6 +22,17 @@ The k3ss-IDE platform consists of several integrated components:
 - **Context Window Monitor**: Alerts when approaching token limits
 - **WebUI Plugin**: Visualization components for the platform
 
+## Prerequisites
+
+Before running the installation script, please ensure you have the following tools installed on your system:
+
+- **Git**: For cloning the repository. [Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- **Conda (Miniconda or Anaconda)**: For managing the Python environment. [Miniconda Installation Guide](https://docs.conda.io/projects/miniconda/en/latest/)
+- **Node.js and npm**: For the Electron UI. Node.js installation typically includes npm. [Node.js Installation Guide](https://nodejs.org/)
+- **Rust**: Required for some underlying dependencies. [Rust Installation Guide](https://www.rust-lang.org/tools/install)
+
+The installation script (`install.sh`) will check for these dependencies and warn you if they are missing.
+
 ## Installation
 
 ### Local Installation (Recommended)
@@ -140,3 +151,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
