@@ -32,12 +32,17 @@ python context_watcher.py &
 CONTEXT_PID=$!
 cd ..
 
-# Start Agent Sidecar
-echo "Starting Agent Sidecar..."
-cd agent-sidecar
-npm start &
-SIDECAR_PID=$!
-cd ..
+# Start Agent Sidecar (if configured)
+SIDECAR_PID=""
+if [ -f "agent-sidecar/package.json" ]; then
+    echo "Starting Agent Sidecar..."
+    cd agent-sidecar
+    npm start &
+    SIDECAR_PID=$!
+    cd ..
+else
+    echo "Skipping Agent Sidecar: Not configured (missing agent-sidecar/package.json)"
+fi
 
 # Start Electron App
 echo "Starting Electron App..."
@@ -56,7 +61,12 @@ echo "Press Ctrl+C to stop all components"
 # Handle shutdown
 function cleanup {
     echo "Shutting down k3ss-IDE components..."
-    kill $MEMORY_PID $CONTEXT_PID $SIDECAR_PID $ELECTRON_PID 2>/dev/null || true
+    # Kill only the PIDs that were actually started
+    PIDS_TO_KILL="$MEMORY_PID $CONTEXT_PID $ELECTRON_PID"
+    if [ -n "$SIDECAR_PID" ]; then
+        PIDS_TO_KILL="$PIDS_TO_KILL $SIDECAR_PID"
+    fi
+    kill $PIDS_TO_KILL 2>/dev/null || true
     echo "Shutdown complete"
 }
 
@@ -64,3 +74,4 @@ trap cleanup EXIT
 
 # Wait for user to press Ctrl+C
 wait
+

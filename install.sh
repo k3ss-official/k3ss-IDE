@@ -14,10 +14,10 @@ CONDA_ENV_FILE="$INSTALLERS_DIR/conda_env.yml"
 
 # --- Colors and Formatting ---
 # Use printf for better compatibility with escape sequences
-GREEN=$(printf 	'\033[0;32m	')
-YELLOW=$(printf 	'\033[1;33m	')
-RED=$(printf 	'\033[0;31m	')
-NC=$(printf 	'\033[0m	') # No Color
+GREEN=$(printf '	\033[0;32m	')
+YELLOW=$(printf '	\033[1;33m	')
+RED=$(printf '	\033[0;31m	')
+NC=$(printf '	\033[0m	') # No Color
 CHECKMARK="${GREEN}✓${NC}"
 CROSS="${RED}✗${NC}"
 
@@ -61,7 +61,7 @@ check_dependency() {
         return 0
     else
         echo -e "${CROSS}"
-        print_info "    ${YELLOW}Warning: Command 	'$cmd	' not found.${NC}"
+        print_info "    ${YELLOW}Warning: Command '	$cmd	' not found.${NC}"
         print_info "    Please install it. See: ${YELLOW}$url${NC}"
         return 1
     fi
@@ -99,7 +99,7 @@ done
 
 if [[ "$USE_EXISTING_ENV" =~ ^[Yy]$ ]]; then
     print_info "Available Conda environments:"
-    conda env list | grep -v "^#" | sed 	's/^/  /	'
+    conda env list | grep -v "^#" | sed '	 s/^/  /	'
     while true; do
         read -p "Enter the name of the existing environment to use: " CONDA_ENV_NAME
         if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
@@ -110,7 +110,7 @@ if [[ "$USE_EXISTING_ENV" =~ ^[Yy]$ ]]; then
             print_success "Environment '$CONDA_ENV_NAME' updated successfully."
             break
         else
-            print_info "${RED}Environment 	'$CONDA_ENV_NAME	' not found. Please try again.${NC}"
+            print_info "${RED}Environment '	$CONDA_ENV_NAME	' not found. Please try again.${NC}"
         fi
     done
 else
@@ -119,34 +119,37 @@ else
 
     # Basic validation for environment name (no spaces)
     if [[ "$CONDA_ENV_NAME" =~ \s ]]; then
-        print_fail "Environment name cannot contain spaces: 	'$CONDA_ENV_NAME	'"
+        print_fail "Environment name cannot contain spaces: '	$CONDA_ENV_NAME	'"
     fi
 
     if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
-        print_fail "Environment 	'$CONDA_ENV_NAME	' already exists. Please remove it first (conda env remove -n $CONDA_ENV_NAME) or choose a different name."
+        print_fail "Environment '	$CONDA_ENV_NAME	' already exists. Please remove it first (conda env remove -n $CONDA_ENV_NAME) or choose a different name."
     else
         if [ -f "$CONDA_ENV_FILE" ]; then
-            print_info "Creating new environment 	'$CONDA_ENV_NAME	' from $CONDA_ENV_FILE..."
+            print_info "Creating new environment '	$CONDA_ENV_NAME	' from $CONDA_ENV_FILE..."
             # Modify the environment file to set the name
             sed -i.bak "s/^name: .*/name: $CONDA_ENV_NAME/" "$CONDA_ENV_FILE"
             conda env create -f "$CONDA_ENV_FILE" || print_fail "Failed to create Conda environment."
             # Restore the original environment file name (optional, but good practice)
             mv "${CONDA_ENV_FILE}.bak" "$CONDA_ENV_FILE"
-            print_success "Conda environment 	'$CONDA_ENV_NAME	' created successfully."
+            print_success "Conda environment '	$CONDA_ENV_NAME	' created successfully."
         else
             print_fail "Conda environment file not found: $CONDA_ENV_FILE"
         fi
     fi
 fi
 
-# 3. Install Node.js Dependencies (Electron)
-print_step "Installing Node.js Dependencies for Electron UI"
+# 3. Install & Build Electron UI
+print_step "Installing & Building Electron UI"
 
 if [ -d "$ELECTRON_DIR" ]; then
     cd "$ELECTRON_DIR" || print_fail "Could not change directory to $ELECTRON_DIR"
     print_info "Running npm install in $ELECTRON_DIR... (This may take a while)"
     npm install || print_fail "npm install failed in $ELECTRON_DIR"
     print_success "Node.js dependencies installed successfully."
+    print_info "Running npm run build in $ELECTRON_DIR... (This may take a while)"
+    npm run build || print_fail "npm run build failed in $ELECTRON_DIR"
+    print_success "Electron UI built successfully."
     cd "$SCRIPT_DIR" || print_fail "Could not change directory back to $SCRIPT_DIR"
 else
     print_fail "Electron directory not found: $ELECTRON_DIR"
@@ -166,13 +169,23 @@ else
     verification_passed=0
 fi
 
+# Check if Electron build output exists
+echo -n "  Checking for Electron build output (dist/renderer/index.html)... "
+if [ -f "$ELECTRON_DIR/dist/renderer/index.html" ]; then
+    echo -e "${CHECKMARK}"
+else
+    echo -e "${CROSS}"
+    print_info "    Electron build output not found."
+    verification_passed=0
+fi
+
 # Check if a key Python package can be imported
 echo -n "  Checking Conda environment packages (fastapi)... "
 if conda run -n "$CONDA_ENV_NAME" python -c "import fastapi" &> /dev/null; then
     echo -e "${CHECKMARK}"
 else
     echo -e "${CROSS}"
-    print_info "    Failed to import 	'fastapi	' in 	'$CONDA_ENV_NAME	' environment."
+    print_info "    Failed to import '	fastapi	' in '	$CONDA_ENV_NAME	' environment."
     verification_passed=0
 fi
 
@@ -185,7 +198,7 @@ fi
 # 5. Final Report & Instructions
 print_step "Installation Complete!"
 
-echo -e "${GREEN}k3ss-IDE has been successfully installed using Conda environment 	'$CONDA_ENV_NAME	'.${NC}"
+echo -e "${GREEN}k3ss-IDE has been successfully installed using Conda environment '	$CONDA_ENV_NAME	'.${NC}"
 echo -e "${YELLOW}Next Steps:${NC}"
 echo -e "1. Activate the Conda environment: ${GREEN}conda activate $CONDA_ENV_NAME${NC}"
 echo -e "2. Configure your API keys and settings:"
