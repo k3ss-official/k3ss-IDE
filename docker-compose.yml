@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  helicone:
+    image: helicone/helicone:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - DATABASE_URL=sqlite:///data/helicone.db
+      - HELICONE_API_KEY=${HELICONE_API_KEY:-helicone_123}
+    volumes:
+      - helicone-data:/data
+    restart: unless-stopped
+
+  litefs:
+    image: flyio/litefs:latest
+    volumes:
+      - ./litefs.yml:/etc/litefs.yml
+      - litefs-data:/data
+    restart: unless-stopped
+
+  memory-api:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - LITEFS_PATH=/data
+    volumes:
+      - litefs-data:/data
+    depends_on:
+      - redis
+      - litefs
+    restart: unless-stopped
+
+  context-monitor:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.context
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - HELICONE_URL=http://helicone:8888
+    depends_on:
+      - redis
+      - helicone
+    restart: unless-stopped
+
+  sidecar:
+    build: ./agent-sidecar
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - HELICONE_URL=http://helicone:8888
+      - MEMORY_API_URL=http://memory-api:8080
+      - CONTEXT_MONITOR_URL=http://context-monitor:8081
+    depends_on:
+      - redis
+      - helicone
+      - memory-api
+      - context-monitor
+    restart: unless-stopped
+
+  webui:
+    build: ./electron
+    ports:
+      - "3000:3000"
+    environment:
+      - SIDECAR_URL=http://sidecar:8000
+      - HELICONE_URL=http://helicone:8888
+    depends_on:
+      - sidecar
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  litefs-data:
+  helicone-data:

@@ -1,0 +1,41 @@
+{
+  "name": "k3ss-ide-electron",
+  "version": "1.0.0",
+  "description": "k3ss-IDE Electron GUI Shell with Dynamic Model Menu",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "start": "tsc && electron .",
+    "build": "tsc && electron-builder",
+    "dev": "tsc -w & electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["k3ss", "IDE", "electron", "GUI"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "dotenv": "^16.0.3",
+    "electron": "^28.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "electron-builder": "^24.6.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "build": {
+    "appId": "com.k3ss.ide",
+    "productName": "k3ss-IDE",
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    }
+  }
+}
