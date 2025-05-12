@@ -5,7 +5,7 @@
   "main": "dist/main/main.js",
   "scripts": {
     "start": "tsc && electron .",
-    "build": "tsc && electron-builder",
+    "build": "tsc && mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/index.html && cp src/renderer/styles.css dist/renderer/styles.css && electron-builder",
     "dev": "tsc -w & electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
